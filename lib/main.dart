@@ -13,6 +13,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:provider/provider.dart';
 import 'package:vms_app/kdn/ros/viewModel/NavigationViewModel.dart';
+import 'package:vms_app/kdn/cmm/api_service.dart';
 
 import 'firebase_options.dart';
 import 'kdn/main/viewModel/VesselSearchViewModel.dart';
@@ -49,6 +50,9 @@ Future<void> _setupFlutterNotifications() async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  DioClient().init();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
