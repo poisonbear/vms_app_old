@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "49645199090",
+    "project_id": "vms-app-8ff6d",
+    "storage_bucket": "vms-app-8ff6d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:49645199090:android:76e62dad7afe760b92fa6b",
+        "android_client_info": {
+          "package_name": "kdn.vms.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmnn9lptZ-rU-XgKsdyVv24aU9SzBY28c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

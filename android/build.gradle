@@ -1,0 +1,49 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    // Play Services 버전 강제 지정
+    configurations.all {
+        resolutionStrategy {
+            force 'com.google.android.gms:play-services-measurement:21.5.0'
+            force 'com.google.android.gms:play-services-measurement-api:21.5.0'
+            force 'com.google.android.gms:play-services-measurement-base:21.5.0'
+            force 'com.google.android.gms:play-services-measurement-impl:21.5.0'
+            force 'com.google.firebase:firebase-analytics:21.5.0'
+        }
+    }
+}
+
+rootProject.buildDir = '../build'
+
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+
+    // namespace 자동 설정
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            project.android {
+                if (namespace == null) {
+                    namespace project.group ?: "com.example.${project.name.replace('-', '_')}"
+                }
+            }
+        }
+    }
+}
+
+subprojects {
+    project.evaluationDependsOn(':app')
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}
