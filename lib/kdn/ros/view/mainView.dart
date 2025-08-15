@@ -387,93 +387,180 @@ class _mainViewViewState extends State<mainView> with TickerProviderStateMixin {
     }
   }
 
-  /// 네비게이션 이력 리셋
-  void _resetNavigationHistory() {
-    _stopRouteUpdates();
-    _routeSearchViewModel.clearRoutes();
-    _routeSearchViewModel.setNavigationHistoryMode(false);
-    setState(() {
-      _selectedIndex = 0;
-      selectedIndex = 0;
-    });
-  }
-
-  /// 하단 탭 클릭 처리
+  /// 하단 탭 클릭 처리 (수정된 버전)
   void _onItemTapped(int index, BuildContext context) {
+    // 상태 업데이트
     setState(() {
       _selectedIndex = index;
       selectedIndex = index;
     });
 
+    // 기존 BottomSheet 안전하게 닫기
     if (_bottomSheetController != null) {
       _bottomSheetController!.close();
       _bottomSheetController = null;
     }
 
+    // 라우트 관련 상태 초기화
     _stopRouteUpdates();
     _routeSearchViewModel.clearRoutes();
     _routeSearchViewModel.setNavigationHistoryMode(true);
 
+    // 홈 탭이 아닌 경우에만 처리
     if (index != 0) {
-      if (index == 1) {
-        _bottomSheetController = Scaffold.of(context).showBottomSheet(
-              (context) => WillPopScope(
-            onWillPop: () async {
-              setState(() {
-                _selectedIndex = 0;
-                selectedIndex = 0;
-              });
-              return true;
-            },
-            child: mainViewWindy(context, onClose: () {
-              setState(() {
-                _selectedIndex = 0;
-                selectedIndex = 0;
-              });
-            }),
-          ),
-          backgroundColor: getColorblack_type3(),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
-          ),
-        );
-      } else if (index == 2) {
-        _bottomSheetController = Scaffold.of(context).showBottomSheet(
-              (context) => WillPopScope(
-            onWillPop: () async {
-              _resetNavigationHistory();
-              return true;
-            },
-            child: MainViewNavigationSheet(
-              onClose: () {
-                _resetNavigationHistory();
-              },
-              resetDate: true,
-              resetSearch: true,
-            ),
-          ),
-          backgroundColor: getColorblack_type3(),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
-          ),
-        );
+      // WidgetsBinding으로 안전하게 실행
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
 
-        _bottomSheetController?.closed.then((_) {
-          _resetNavigationHistory();
-        });
-      } else if (index == 3) {
-        Navigator.push(
-          context,
-          createSlideTransition(
-            MemberInformationView(username: widget.username),
+        try {
+          switch (index) {
+            case 1:
+              _showWeatherBottomSheet(context);
+              break;
+            case 2:
+              _showNavigationBottomSheet(context);
+              break;
+            case 3:
+              _navigateToMemberInfo(context);
+              break;
+            default:
+              _resetToHomeTab();
+              break;
+          }
+        } catch (e) {
+          debugPrint('탭 전환 오류: $e');
+          _resetToHomeTab();
+        }
+      });
+    }
+  }
+
+  /// 기상정보 BottomSheet 생성
+  void _showWeatherBottomSheet(BuildContext context) {
+    try {
+      _bottomSheetController = Scaffold.of(context).showBottomSheet(
+            (context) => WillPopScope(
+          onWillPop: () async {
+            _resetToHomeTab();
+            return true;
+          },
+          child: mainViewWindy(context, onClose: () {
+            _resetToHomeTab();
+          }),
+        ),
+        backgroundColor: getColorblack_type3(),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
+        ),
+      );
+
+      // BottomSheet가 닫힐 때 콜백 등록
+      _bottomSheetController?.closed.then((_) {
+        if (mounted) {
+          _resetToHomeTab();
+        }
+      });
+    } catch (e) {
+      debugPrint('기상정보 BottomSheet 생성 오류: $e');
+      _resetToHomeTab();
+      _showErrorSnackBar('기상정보를 불러올 수 없습니다.');
+    }
+  }
+
+  /// 항행이력 BottomSheet 생성
+  void _showNavigationBottomSheet(BuildContext context) {
+    try {
+      _bottomSheetController = Scaffold.of(context).showBottomSheet(
+            (context) => WillPopScope(
+          onWillPop: () async {
+            _resetNavigationHistory();
+            return true;
+          },
+          child: MainViewNavigationSheet(
+            onClose: () {
+              _resetNavigationHistory();
+            },
+            resetDate: true,
+            resetSearch: true,
           ),
-        ).then((_) {
-          setState(() {
-            _selectedIndex = 0;
-            selectedIndex = 0;
-          });
-        });
-      }
+        ),
+        backgroundColor: getColorblack_type3(),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
+        ),
+      );
+
+      // BottomSheet가 닫힐 때 콜백 등록
+      _bottomSheetController?.closed.then((_) {
+        if (mounted) {
+          _resetNavigationHistory();
+        }
+      });
+    } catch (e) {
+      debugPrint('항행이력 BottomSheet 생성 오류: $e');
+      _resetNavigationHistory();
+      _showErrorSnackBar('항행이력을 불러올 수 없습니다.');
+    }
+  }
+
+  /// 마이페이지 네비게이션
+  void _navigateToMemberInfo(BuildContext context) {
+    try {
+      Navigator.push(
+        context,
+        createSlideTransition(
+          MemberInformationView(username: widget.username),
+        ),
+      ).then((_) {
+        if (mounted) {
+          _resetToHomeTab();
+        }
+      }).catchError((e) {
+        debugPrint('마이페이지 네비게이션 오류: $e');
+        _resetToHomeTab();
+        _showErrorSnackBar('마이페이지를 열 수 없습니다.');
+      });
+    } catch (e) {
+      debugPrint('마이페이지 네비게이션 즉시 오류: $e');
+      _resetToHomeTab();
+      _showErrorSnackBar('마이페이지를 열 수 없습니다.');
+    }
+  }
+
+  /// 홈 탭으로 리셋
+  void _resetToHomeTab() {
+    if (mounted) {
+      setState(() {
+        _selectedIndex = 0;
+        selectedIndex = 0;
+      });
+    }
+  }
+
+  /// 항행이력 리셋 (기존 메서드 개선)
+  void _resetNavigationHistory() {
+    _stopRouteUpdates();
+    _routeSearchViewModel.clearRoutes();
+    _routeSearchViewModel.setNavigationHistoryMode(false);
+
+    if (mounted) {
+      setState(() {
+        _selectedIndex = 0;
+        selectedIndex = 0;
+      });
+    }
+  }
+
+  /// 에러 스낵바 표시
+  void _showErrorSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: const Duration(seconds: 2),
+          backgroundColor: Colors.red[600],
+        ),
+      );
     }
   }
 
@@ -572,9 +659,14 @@ class _mainViewViewState extends State<mainView> with TickerProviderStateMixin {
             if (_isFlashing) _buildFlashingEffect(),
           ],
         ),
-        bottomNavigationBar: BottomNavigationComponent(
-          selectedIndex: selectedIndex,
-          onItemTapped: (index) => _onItemTapped(index, context),
+        // ✅ Builder로 안전한 context 제공
+        bottomNavigationBar: Builder(
+          builder: (BuildContext builderContext) {
+            return BottomNavigationComponent(
+              selectedIndex: selectedIndex,
+              onItemTapped: (index) => _onItemTapped(index, builderContext),
+            );
+          },
         ),
       ),
     );
@@ -585,10 +677,11 @@ class _mainViewViewState extends State<mainView> with TickerProviderStateMixin {
     return Positioned(
       top: getSize56().toDouble(),
       left: getSize20().toDouble(),
-      right: getSize20().toDouble(),
+      // ✅ right 제거하여 좌측 정렬
       child: Consumer<RosNavigationViewModel>(
         builder: (context, viewModel, _) {
           return Column(
+            crossAxisAlignment: CrossAxisAlignment.start, // ✅ 좌측 정렬 추가
             children: [
               WeatherStatusButton(
                 svgPath: 'assets/kdn/home/img/top_pago_img.svg',

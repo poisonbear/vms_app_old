@@ -1,7 +1,7 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-export "FLUTTER_ROOT=C:\Users\User\Desktop\vms_install\workspace\flutter_windows_3.27.0-stable\flutter"
-export "FLUTTER_APPLICATION_PATH=C:\Users\User\Desktop\vms_app_old"
+export "FLUTTER_ROOT=C:\tools\flutter_windows_3.27.0-stable\flutter"
+export "FLUTTER_APPLICATION_PATH=C:\Users\rogue\AndroidStudioProjects\vms_app"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_BUILD_DIR=build"
 export "FLUTTER_BUILD_NAME=0.8.1"
